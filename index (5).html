@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>아이봄 챗봇 시연 — 홈페이지 × 모바일 앱 혼용</title>
+<style>
+  :root{
+    --green-900:#123A2E; --green-700:#1F5F4E; --green-600:#2A7C64; --green-100:#E6F0EA;
+    --gold-500:#E1A33D; --gold-100:#FBEBCE; --cream:#F7F4EC; --ink:#16241F; --ink-soft:#4B5A54;
+    --line:#DDE4DF; --white:#FFFFFF; --radius-md:14px; --radius-sm:9px;
+    --shadow:0 18px 40px rgba(18,58,46,0.16);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",-apple-system,sans-serif;background:var(--cream);color:var(--ink);}
+
+  /* ---- top switch bar ---- */
+  .switchbar{
+    position:sticky;top:0;z-index:50;
+    background:var(--green-900);color:#fff;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,0.15);
+    flex-wrap:wrap;
+  }
+  .switchbar .lbl{font-size:12px;opacity:.75;margin-right:4px;}
+  .switch-btn{
+    border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);color:#fff;
+    font-size:13px;font-weight:700;padding:7px 16px;border-radius:999px;cursor:pointer;
+  }
+  .switch-btn.active{background:var(--gold-500);color:var(--green-900);border-color:var(--gold-500);}
+  .switchbar .note{font-size:11.5px;opacity:.8;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* =========================================================
+     WEBSITE VIEW — i-bom.com 실제 페이지 재현
+     ========================================================= */
+  #view-web{position:relative;}
+  .web-top{
+    background:#fff;border-bottom:1px solid var(--line);
+    padding:14px 24px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .web-top .logo{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--green-900);font-size:15px;}
+  .web-top .logo img{height:26px;}
+  .web-top .downloads a{
+    font-size:12.5px;color:var(--green-700);text-decoration:none;font-weight:700;margin-left:14px;
+    border:1px solid var(--green-600);padding:6px 12px;border-radius:999px;
+  }
+  .web-hero{
+    background:linear-gradient(160deg,var(--green-900) 0%,var(--green-700) 55%,var(--green-600) 100%);
+    color:#fff;padding:56px 24px 70px;text-align:center;position:relative;overflow:hidden;
+  }
+  .web-hero img.brandmark{height:64px;margin-bottom:18px;filter:brightness(0) invert(1);opacity:.95;}
+  .web-hero h1{font-size:clamp(22px,3.6vw,34px);margin:0 0 12px;font-weight:800;line-height:1.35;}
+  .web-hero p{font-size:14px;opacity:.9;line-height:1.7;margin:0 auto 26px;max-width:520px;}
+  .web-hero .cta-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .web-hero .cta-row a{
+    background:var(--gold-500);color:var(--green-900);font-weight:800;font-size:13.5px;
+    padding:11px 20px;border-radius:999px;text-decoration:none;
+  }
+  .web-hero .cta-row a.outline{background:transparent;border:1px solid rgba(255,255,255,0.55);color:#fff;}
+
+  .web-section{max-width:960px;margin:0 auto;padding:46px 24px;text-align:center;}
+  .web-section h2{font-size:19px;color:var(--green-900);margin:0 0 14px;font-weight:800;}
+  .web-section p{color:var(--ink-soft);font-size:13.5px;line-height:1.8;max-width:640px;margin:0 auto;}
+  .web-imgs{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:26px;}
+  .web-imgs img{max-width:260px;width:100%;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow);}
+
+  .web-video{max-width:720px;margin:36px auto 0;aspect-ratio:16/9;border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+  .web-video iframe{width:100%;height:100%;border:0;}
+
+  .web-cond{background:var(--white);border-top:1px solid var(--line);padding:40px 24px;}
+  .web-cond-inner{max-width:760px;margin:0 auto;text-align:center;}
+  .web-cond h3{color:var(--green-900);font-size:15px;margin:0 0 12px;}
+  .web-cond p{color:var(--ink-soft);font-size:13px;line-height:1.8;margin:0 0 8px;}
+
+  .web-footer{background:var(--green-900);color:rgba(255,255,255,0.75);padding:26px 24px;text-align:center;font-size:12px;line-height:1.9;}
+  .web-footer a{color:rgba(255,255,255,0.85);}
+
+  /* website chat widget (typical corner widget, not full-screen sheet) */
+  .web-fab{
+    position:fixed;right:26px;bottom:26px;z-index:80;
+    width:60px;height:60px;border-radius:50%;background:var(--gold-500);color:var(--green-900);
+    border:none;font-size:26px;box-shadow:0 12px 26px rgba(225,163,61,0.5);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .web-panel{
+    position:fixed;right:26px;bottom:100px;z-index:79;
+    width:360px;max-width:88vw;height:520px;max-height:72vh;
+    background:#fff;border-radius:18px;box-shadow:0 24px 60px rgba(18,58,46,0.35);
+    display:none;flex-direction:column;overflow:hidden;border:1px solid var(--line);
+  }
+  .web-panel.open{display:flex;}
+
+  /* =========================================================
+     MOBILE VIEW — 아이봄 앱 프레임 (이전 데모 재사용)
+     ========================================================= */
+  #view-mobile{padding:34px 16px 60px;display:flex;justify-content:center;}
+  .phone{width:340px;height:700px;background:var(--green-900);border-radius:44px;padding:14px;box-shadow:var(--shadow);position:relative;flex-shrink:0;}
+  .phone::before{content:"";position:absolute;top:26px;left:50%;transform:translateX(-50%);width:90px;height:6px;border-radius:6px;background:rgba(255,255,255,0.25);}
+  .screen{width:100%;height:100%;background:var(--white);border-radius:30px;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+  .app-status{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:11px;color:#fff;background:var(--green-900);}
+  .app-header{background:linear-gradient(135deg,var(--green-700),var(--green-900));color:#fff;padding:18px 18px 22px;}
+  .app-header .brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;margin-bottom:4px;}
+  .app-header .brand .dot{width:10px;height:10px;background:var(--gold-500);border-radius:3px;transform:rotate(45deg);}
+  .app-header .sub{font-size:12px;opacity:.85;}
+  .app-body{flex:1;overflow-y:auto;padding:16px;background:var(--cream);}
+  .home-card{background:#fff;border-radius:var(--radius-sm);border:1px solid var(--line);padding:14px;margin-bottom:12px;}
+  .home-card .label{font-size:11px;color:var(--green-700);font-weight:700;margin-bottom:6px;}
+  .home-card .title{font-size:14px;font-weight:700;margin-bottom:3px;}
+  .home-card .desc{font-size:12px;color:var(--ink-soft);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px 10px;text-align:center;font-size:12.5px;font-weight:700;color:var(--green-900);}
+  .tile .ic{font-size:20px;display:block;margin-bottom:6px;}
+  .fab{position:absolute;right:16px;bottom:20px;width:56px;height:56px;border-radius:50%;background:var(--gold-500);color:var(--green-900);display:flex;align-items:center;justify-content:center;font-size:24px;border:none;box-shadow:0 10px 22px rgba(225,163,61,0.55);cursor:pointer;z-index:5;}
+  .fab-badge{position:absolute;top:-4px;right:-4px;background:#D64545;color:#fff;font-size:10px;font-weight:800;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  .sheet{position:absolute;left:0;right:0;bottom:0;height:0%;background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -10px 26px rgba(0,0,0,0.18);display:flex;flex-direction:column;overflow:hidden;transition:height .32s ease;z-index:10;}
+  .sheet.open{height:94%;}
+
+  /* =========================================================
+     SHARED CHAT WIDGET INTERNALS (used by both instances)
+     ========================================================= */
+  .chat-top{background:var(--green-900);color:#fff;padding:12px 14px 10px;flex-shrink:0;}
+  .chat-top-row{display:flex;align-items:center;justify-content:space-between;}
+  .chat-top-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;}
+  .chat-top-title .badge{width:26px;height:26px;border-radius:50%;background:var(--gold-500);color:var(--green-900);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .chat-close{background:transparent;border:none;color:#fff;font-size:18px;cursor:pointer;opacity:.85;}
+  .lang-bar{display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:2px;}
+  .lang-btn{flex-shrink:0;border:1px solid rgba(255,255,255,0.35);background:rgba(255,255,255,0.08);color:#fff;font-size:11px;padding:5px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+  .lang-btn.active{background:var(--gold-500);border-color:var(--gold-500);color:var(--green-900);font-weight:800;}
+  .chat-scroll{flex:1;overflow-y:auto;padding:14px;background:var(--cream);display:flex;flex-direction:column;gap:10px;}
+  .msg{max-width:84%;font-size:13px;line-height:1.55;padding:10px 12px;border-radius:14px;}
+  .msg.bot{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:4px;white-space:pre-line;}
+  .msg.user{align-self:flex-end;background:var(--green-700);color:#fff;border-bottom-right-radius:4px;}
+  .cat-title{font-size:11px;color:var(--ink-soft);margin:2px 2px 0;}
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:stretch;}
+  .cat-chip{background:#fff;border:1px solid var(--green-600);color:var(--green-700);font-size:12px;font-weight:700;padding:10px 8px;border-radius:10px;cursor:pointer;text-align:center;}
+  .cat-chip:active{background:var(--green-100);}
+  .faq-chip{align-self:flex-start;background:#fff;border:1px solid var(--line);font-size:12.5px;padding:9px 11px;border-radius:10px;cursor:pointer;color:var(--green-900);font-weight:600;max-width:92%;}
+  .faq-chip:active{background:var(--green-100);}
+  .back-chip{align-self:flex-start;background:transparent;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;padding:4px 2px;}
+  .chat-input-row{flex-shrink:0;display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:#fff;}
+  .chat-input-row input{flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 14px;font-size:13px;outline:none;}
+  .chat-input-row input:focus{border-color:var(--green-600);}
+  .chat-input-row button{background:var(--green-700);color:#fff;border:none;border-radius:999px;width:40px;height:40px;font-size:15px;cursor:pointer;flex-shrink:0;}
+  .footnote{font-size:10px;color:var(--ink-soft);text-align:center;padding:4px 12px 10px;background:#fff;}
+</style>
+</head>
+<body>
+
+<div class="switchbar">
+  <span class="lbl">채널 전환:</span>
+  <button class="switch-btn active" id="btnWeb">🖥️ 홈페이지(i-bom.com)</button>
+  <button class="switch-btn" id="btnMobile">📱 아이봄 앱</button>
+  <span class="note">— 동일한 FAQ·다국어 엔진을 두 채널에 혼용 적용</span>
+</div>
+
+<!-- ============ WEBSITE VIEW ============ -->
+<div class="view active" id="view-web">
+  <div class="web-top">
+    <div class="logo"><img src="https://www.i-bom.com/resource/img/iBomLogo.png" alt="아이봄"/> 아이봄 i-bom</div>
+    <div class="downloads">
+      <a href="https://apps.apple.com/kr/app/%EC%95%84%EC%9D%B4%EB%B4%84-i-bom/id6751081304" target="_blank" rel="noopener">App Store</a>
+      <a href="https://play.google.com/store/apps/details?id=com.h2edu.app.ibom" target="_blank" rel="noopener">Google Play</a>
+    </div>
+  </div>
+
+  <div class="web-hero">
+    <h1>우리 아이 교육의 든든한 관리 파트너</h1>
+    <p>방과후 우리 아이들의 교육관리부터 안전까지, 아이봄이 함께 합니다.<br/>궁금한 점은 우측 하단 채팅 상담을 이용해 보세요.</p>
+    <div class="cta-row">
+      <a href="https://www.i-bom.com/institution/login/join" target="_blank" rel="noopener">교육기관 신청</a>
+      <a class="outline" href="https://www.i-bom.com/institution/login/login" target="_blank" rel="noopener">교육기관 로그인</a>
+    </div>
+  </div>
+
+  <div class="web-section">
+    <h2>학급 · 학생 · 교과 · 활동을 하나의 시스템으로</h2>
+    <p>교육 현장의 목소리로 개발한 아이봄은 사용자별 맞춤형 교육 행정 환경을 제공합니다.</p>
+    <div class="web-video">
+      <iframe src="https://www.youtube.com/embed/vgdZ6rQoHbM" title="아이봄 소개영상" allowfullscreen></iframe>
+    </div>
+    <div class="web-imgs">
+      <img src="https://www.i-bom.com/resource/img/index_view1.png" alt="아이봄 화면 예시 1"/>
+      <img src="https://www.i-bom.com/resource/img/index_view2.png" alt="아이봄 화면 예시 2"/>
+    </div>
+  </div>
+
+  <div class="web-cond">
+    <div class="web-cond-inner">
+      <h3>교육관리 프로그램 이용 조건</h3>
+      <p>공교육기관(초·중등교육법 제2조·제3조 명시 기관)은 사회적협동조합 행복한학교희망교육에서 사회공헌 목적으로 무상지원하고 있습니다.</p>
+      <p>사교육기관(초·중등 교육법 미등록 기관)은 이용 조건과 이용자(학생) 수에 따라 연간 사용료가 차등 발생할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <div class="web-footer">
+    아이봄. 서울특별시 동작구 보라매로94, 401호 / 고객센터 070-7782-7056, 010-9727-7056<br/>
+    <a href="https://www.i-bom.com/app/terms/service" target="_blank" rel="noopener">이용약관</a> ·
+    <a href="https://www.i-bom.com/app/terms/privacy" target="_blank" rel="noopener">개인정보처리방침</a>
+  </div>
+
+  <button class="web-fab" id="webFab">💬</button>
+  <div class="web-panel" id="webPanel">
+    <div class="chat-top">
+      <div class="chat-top-row">
+        <div class="chat-top-title"><span class="badge">🤖</span><span id="webTitle">아이봄 챗봇</span></div>
+        <button class="chat-close" id="webClose">✕</button>
+      </div>
+      <div class="lang-bar" id="webLangBar"></div>
+    </div>
+    <div class="chat-scroll" id="webScroll"></div>
+    <div class="chat-input-row">
+      <input id="webInput" type="text" placeholder="메시지를 입력하세요" />
+      <button id="webSend">➤</button>
+    </div>
+    <div class="footnote" id="webFootnote"></div>
+  </div>
+</div>
+
+<!-- ============ MOBILE VIEW ============ -->
+<div class="view" id="view-mobile">
+  <div class="phone">
+    <div class="screen">
+      <div class="app-status"><span>9:41</span><span>iBom</span></div>
+      <div class="app-header">
+        <div class="brand"><span class="dot"></span>아이봄 iBom</div>
+        <div class="sub">우리 아이의 방과후 교육, 한눈에</div>
+      </div>
+      <div class="app-body">
+        <div class="home-card">
+          <div class="label">오늘의 안내</div>
+          <div class="title">2학기 수강신청 안내</div>
+          <div class="desc">7.10(금) 09:00 ~ 7.14(화) 18:00</div>
+        </div>
+        <div class="grid2">
+          <div class="tile"><span class="ic">📘</span>수강신청</div>
+          <div class="tile"><span class="ic">🗓️</span>강좌/출석</div>
+          <div class="tile"><span class="ic">👨‍👩‍👧</span>자녀관리</div>
+          <div class="tile"><span class="ic">💬</span>문의내역</div>
+        </div>
+        <div class="home-card">
+          <div class="label">공지사항</div>
+          <div class="title">여름방학 특강 프로그램 모집</div>
+          <div class="desc">관심 분야를 선택하고 신청해보세요.</div>
+        </div>
+      </div>
+      <button class="fab" id="mobFab">💬<span class="fab-badge">1</span></button>
+      <div class="sheet" id="mobSheet">
+        <div class="chat-top">
+          <div class="chat-top-row">
+            <div class="chat-top-title"><span class="badge">🤖</span><span id="mobTitle">아이봄 챗봇</span></div>
+            <button class="chat-close" id="mobClose">✕</button>
+          </div>
+          <div class="lang-bar" id="mobLangBar"></div>
+        </div>
+        <div class="chat-scroll" id="mobScroll"></div>
+        <div class="chat-input-row">
+          <input id="mobInput" type="text" placeholder="메시지를 입력하세요" />
+          <button id="mobSend">➤</button>
+        </div>
+        <div class="footnote" id="mobFootnote"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= shared i18n / FAQ data ================= */
+const UI = {
+  ko:{welcome:"안녕하세요! 아이봄 챗봇입니다. 아래 카테고리를 선택하시거나, 궁금하신 내용을 입력해 주세요.",
+      placeholder:"메시지를 입력하세요", closing:"추가로 궁금하신 사항이 있으시면 언제든 질문해 주세요.",
+      noinfo:"현재 확인 가능한 정보가 없습니다. 담당자에게 문의해 주세요.", contact:"문의처: 070-7782-7056",
+      catLabel:"카테고리를 선택해 주세요", back:"◀ 카테고리로 돌아가기", footnote:"※ 무료 시나리오형 챗봇 · 대화 이력은 이 세션에서만 보관됩니다", title:"아이봄 챗봇"},
+  en:{welcome:"Hello! This is the iBom chatbot. Please choose a category below or type your question.",
+      placeholder:"Type a message", closing:"If you have any other questions, feel free to ask anytime.",
+      noinfo:"There is no confirmed information available right now. Please contact our staff.", contact:"Contact: 070-7782-7056",
+      catLabel:"Please choose a category", back:"◀ Back to categories", footnote:"※ Free scenario-based chatbot · chat history is kept only for this session", title:"iBom Chatbot"},
+  zh:{welcome:"您好!这里是iBom聊天机器人。请选择下方分类,或直接输入您想咨询的内容。",
+      placeholder:"请输入消息", closing:"如有其他问题,请随时提问。",
+      noinfo:"目前没有可确认的信息。请联系负责人。", contact:"联系方式:070-7782-7056",
+      catLabel:"请选择分类", back:"◀ 返回分类", footnote:"※ 免费情境式聊天机器人 · 对话记录仅在本次会话中保留", title:"iBom聊天机器人"},
+  vi:{welcome:"Xin chào! Đây là chatbot iBom. Vui lòng chọn danh mục bên dưới hoặc nhập câu hỏi của bạn.",
+      placeholder:"Nhập tin nhắn", closing:"Nếu có thắc mắc khác, quý vị vui lòng hỏi bất cứ lúc nào.",
+      noinfo:"Hiện chưa có thông tin xác nhận. Vui lòng liên hệ nhân viên phụ trách.", contact:"Liên hệ: 070-7782-7056",
+      catLabel:"Vui lòng chọn danh mục", back:"◀ Quay lại danh mục", footnote:"※ Chatbot theo kịch bản miễn phí · lịch sử trò chuyện chỉ lưu trong phiên này", title:"Chatbot iBom"},
+  ja:{welcome:"こんにちは!アイボムチャットボットです。下のカテゴリーを選択するか、質問を入力してください。",
+      placeholder:"メッセージを入力", closing:"他にご質問がございましたら、いつでもお問い合わせください。",
+      noinfo:"現在確認できる情報がありません。担当者にお問い合わせください。", contact:"お問い合わせ:070-7782-7056",
+      catLabel:"カテゴリーを選択してください", back:"◀ カテゴリーに戻る", footnote:"※ 無料シナリオ型チャットボット・会話履歴はこのセッションのみ保存されます", title:"アイボムチャットボット"},
+  ru:{welcome:"Здравствуйте! Это чат-бот iBom. Выберите категорию ниже или введите свой вопрос.",
+      placeholder:"Введите сообщение", closing:"Если у вас есть другие вопросы, обращайтесь в любое время.",
+      noinfo:"В настоящее время подтверждённой информации нет. Пожалуйста, обратитесь к ответственному сотруднику.", contact:"Контакт: 070-7782-7056",
+      catLabel:"Пожалуйста, выберите категорию", back:"◀ Назад к категориям", footnote:"※ Бесплатный сценарный чат-бот · история чата хранится только в этой сессии", title:"Чат-бот iBom"}
+};
+const LANG_LABELS = {ko:"한국어", en:"English", zh:"中文", vi:"Tiếng Việt", ja:"日本語", ru:"Русский"};
+const CATEGORY_LABELS = {
+  acct:{ko:"계정/로그인", en:"Account & Login", zh:"账号/登录", vi:"Tài khoản/Đăng nhập", ja:"アカウント/ログイン", ru:"Аккаунт/Вход"},
+  child:{ko:"자녀 관리", en:"Managing Children", zh:"子女管理", vi:"Quản lý con", ja:"子供の管理", ru:"Управление детьми"},
+  apply:{ko:"수강신청", en:"Course Registration", zh:"课程申请", vi:"Đăng ký khóa học", ja:"受講申請", ru:"Запись на курс"},
+  teacher:{ko:"강사 문의", en:"Contacting Instructors", zh:"讲师咨询", vi:"Liên hệ giảng viên", ja:"講師への問い合わせ", ru:"Связь с преподавателем"},
+  attend:{ko:"출석/알림", en:"Attendance & Notifications", zh:"出勤/通知", vi:"Điểm danh/Thông báo", ja:"出席/通知", ru:"Посещаемость/Уведомления"},
+  etc:{ko:"기타", en:"Other", zh:"其他", vi:"Khác", ja:"その他", ru:"Прочее"}
+};
+const CAT_ORDER = ["acct","child","apply","teacher","attend","etc"];
+const FAQ = [
+{id:1,cat:"acct",kw:["회원가입","가입","아이디","비밀번호","최초 비밀번호"],
+ ko:{q:"회원가입은 어떻게 하나요?",a:"별도의 회원가입 절차는 없습니다. 해당 교육기관에 등록된 학부모님의 휴대전화번호로 로그인할 수 있습니다. 아이디는 등록된 휴대전화번호 11자리이며, 최초 비밀번호는 휴대전화번호 뒷 4자리입니다. 로그인 후 마이페이지 > 비밀번호 설정에서 변경해 주세요."},
+ en:{q:"How do I sign up?",a:"There is no separate sign-up process. You can log in using the mobile number registered with your child's institution. Your ID is the registered 11-digit phone number, and the initial password is the last 4 digits of that number. Please change it after logging in via My Page > Password Settings."},
+ zh:{q:"如何注册会员?",a:"无需单独注册。可使用在教育机构登记的家长手机号码登录。账号为登记的11位手机号码,初始密码为手机号码后4位。登录后请在“我的页面 > 密码设置”中修改密码。"},
+ vi:{q:"Đăng ký thành viên như thế nào?",a:"Không có thủ tục đăng ký riêng. Quý phụ huynh có thể đăng nhập bằng số điện thoại đã đăng ký tại cơ sở giáo dục. ID là số điện thoại 11 chữ số, mật khẩu ban đầu là 4 số cuối. Vui lòng đổi mật khẩu tại Trang cá nhân > Cài đặt mật khẩu sau khi đăng nhập."},
+ ja:{q:"会員登録はどうすればいいですか?",a:"別途の会員登録手続きはありません。教育機関に登録された保護者の携帯電話番号でログインできます。IDは登録された11桁の電話番号、初期パスワードは電話番号下4桁です。ログイン後、マイページ>パスワード設定で変更してください。"},
+ ru:{q:"Как зарегистрироваться?",a:"Отдельной регистрации нет. Вы можете войти, используя номер телефона, зарегистрированный в учреждении вашего ребёнка. Логин — это 11-значный номер телефона, первоначальный пароль — последние 4 цифры номера. Пожалуйста, измените пароль после входа в Мой профиль > Настройки пароля."}},
+{id:2,cat:"acct",kw:["로그인 오류","로그인이 안돼요","접속 오류"],
+ ko:{q:"로그인 오류가 발생하면 어떻게 해야 하나요?",a:"학교 관리자에게 문의해 주세요."},
+ en:{q:"What if I get a login error?",a:"Please contact your school administrator."},
+ zh:{q:"登录出现错误怎么办?",a:"请联系学校管理员。"},
+ vi:{q:"Nếu gặp lỗi đăng nhập thì phải làm sao?",a:"Vui lòng liên hệ quản trị viên nhà trường."},
+ ja:{q:"ログインエラーが発生した場合は?",a:"学校管理者にお問い合わせください。"},
+ ru:{q:"Что делать при ошибке входа?",a:"Пожалуйста, обратитесь к администратору школы."}},
+{id:3,cat:"acct",kw:["비밀번호를 잊","비밀번호 분실","비밀번호 찾기"],
+ ko:{q:"비밀번호를 잊었을 때는 어떻게 해야 하나요?",a:"학교 관리자에게 문의해 주세요."},
+ en:{q:"What should I do if I forget my password?",a:"Please contact your school administrator."},
+ zh:{q:"忘记密码该怎么办?",a:"请联系学校管理员。"},
+ vi:{q:"Quên mật khẩu thì phải làm sao?",a:"Vui lòng liên hệ quản trị viên nhà trường."},
+ ja:{q:"パスワードを忘れた場合は?",a:"学校管理者にお問い合わせください。"},
+ ru:{q:"Что делать, если я забыл пароль?",a:"Пожалуйста, обратитесь к администратору школы."}},
+{id:4,cat:"child",kw:["자녀가 여러 명","형제","자매","여러 자녀"],
+ ko:{q:"자녀가 여러 명일 경우 어떻게 이용하나요?",a:"자녀별로 학교에 등록된 휴대전화번호가 동일한 경우, 로그인 후 메인화면 상단에서 자녀 이름을 선택하여 이용할 수 있습니다."},
+ en:{q:"How do I use the app if I have multiple children?",a:"If the same phone number is registered for each child, you can select your child's name at the top of the main screen after logging in."},
+ zh:{q:"有多个子女时如何使用?",a:"如果各子女在校登记的手机号码相同,登录后可在主页面顶部选择子女姓名进行切换使用。"},
+ vi:{q:"Nếu có nhiều con thì sử dụng như thế nào?",a:"Nếu số điện thoại đăng ký tại trường của các con giống nhau, sau khi đăng nhập quý vị có thể chọn tên con ở phía trên màn hình chính để sử dụng."},
+ ja:{q:"子供が複数人いる場合はどう利用しますか?",a:"各子供の学校登録電話番号が同じ場合、ログイン後メイン画面上部で子供の名前を選択して利用できます。"},
+ ru:{q:"Как пользоваться, если у меня несколько детей?",a:"Если для каждого ребёнка зарегистрирован один и тот же номер телефона, после входа вы можете выбрать имя ребёнка в верхней части главного экрана."}},
+{id:5,cat:"apply",kw:["수강신청","수강 신청 방법","신청 방법"],
+ ko:{q:"수강신청은 어떻게 하나요?",a:"메인화면 또는 하단 메뉴에서 수강신청을 선택합니다. 프로그램을 클릭해 정보를 확인한 뒤 신청 버튼을 눌러 주세요. 신청 기간 내에는 정정이 가능하지만, 기간 이후에는 해당 기관 또는 학교로 문의해 주세요."},
+ en:{q:"How do I register for a course?",a:"Select 'Course Registration' from the main screen or bottom menu. Check the program details and tap the apply button. Changes are possible within the registration period; afterward, please contact the institution or school."},
+ zh:{q:"如何申请课程?",a:"在主页面或下方菜单选择“课程申请”。点击项目确认信息后点击申请按钮。申请期间内可修改,期间结束后请联系相关机构或学校。"},
+ vi:{q:"Đăng ký khóa học như thế nào?",a:"Chọn 'Đăng ký khóa học' ở màn hình chính hoặc menu dưới. Nhấn vào chương trình để xem thông tin rồi nhấn nút đăng ký. Có thể chỉnh sửa trong thời gian đăng ký; sau đó vui lòng liên hệ cơ sở hoặc trường học."},
+ ja:{q:"受講申請はどうすればいいですか?",a:"メイン画面または下部メニューで受講申請を選択します。プログラムをクリックして情報を確認し、申請ボタンを押してください。申請期間内は修正可能ですが、期間終了後は機関または学校にお問い合わせください。"},
+ ru:{q:"Как записаться на курс?",a:"Выберите «Запись на курс» на главном экране или в нижнем меню. Ознакомьтесь с информацией о программе и нажмите кнопку записи. Изменения возможны в течение периода записи; после его окончания обратитесь в учреждение или школу."}},
+{id:6,cat:"teacher",kw:["강사","선생님께 문의","문의하기"],
+ ko:{q:"강좌 선생님께 문의하려면 어떻게 해야 하나요?",a:"마이페이지 > 문의내역 > 문의하기를 선택합니다. 문의 대상에서 강사를 선택한 뒤 프로그램을 선택하고 제목과 내용을 입력해 등록하세요. 강사가 답변하면 푸시 알림으로 안내됩니다."},
+ en:{q:"How do I contact an instructor?",a:"Go to My Page > Inquiries > Ask a Question. Select 'Instructor' as the recipient, choose the program, and enter your title and message. You'll get a push notification when the instructor replies."},
+ zh:{q:"如何咨询讲师?",a:"进入“我的页面 > 咨询记录 > 咨询”,在咨询对象中选择讲师,选择相应项目后输入标题和内容并提交。讲师回复后会有推送通知。"},
+ vi:{q:"Làm sao để liên hệ giảng viên?",a:"Vào Trang cá nhân > Lịch sử liên hệ > Liên hệ. Chọn giảng viên làm đối tượng liên hệ, chọn chương trình, nhập tiêu đề và nội dung rồi gửi. Bạn sẽ nhận thông báo đẩy khi giảng viên trả lời."},
+ ja:{q:"講師に問い合わせるにはどうすればいいですか?",a:"マイページ>問い合わせ履歴>問い合わせるを選択します。問い合わせ対象で講師を選び、プログラムを選択後、タイトルと内容を入力して登録してください。講師が回答するとプッシュ通知でお知らせします。"},
+ ru:{q:"Как связаться с преподавателем?",a:"Перейдите в Мой профиль > История обращений > Написать. Выберите преподавателя в качестве получателя, выберите программу, введите тему и сообщение. Вы получите push-уведомление, когда преподаватель ответит."}},
+{id:7,cat:"attend",kw:["출석 확인 알림","알림이 안와요","알림 오류"],
+ ko:{q:"출석 확인 알림이 오지 않아요.",a:"먼저 휴대폰 알림 설정에서 아이봄 앱 알림이 허용되어 있는지 확인해 주세요. 또한 학교에 등록된 휴대전화번호가 정확한지 확인해 주세요."},
+ en:{q:"I'm not receiving attendance notifications.",a:"Please check that push notifications for the iBom app are allowed in your phone settings. Also confirm the phone number registered at school is correct."},
+ zh:{q:"收不到出勤确认通知怎么办?",a:"请先检查手机设置中是否已允许iBom应用的推送通知。同时请确认在学校登记的手机号码是否正确。"},
+ vi:{q:"Tôi không nhận được thông báo điểm danh.",a:"Vui lòng kiểm tra xem thông báo đẩy của ứng dụng iBom đã được cho phép trong cài đặt điện thoại chưa. Đồng thời kiểm tra số điện thoại đăng ký tại trường có chính xác không."},
+ ja:{q:"出席確認の通知が来ません。",a:"まず携帯電話の通知設定でアイボムアプリの通知が許可されているか確認してください。また学校に登録された電話番号が正しいかご確認ください。"},
+ ru:{q:"Я не получаю уведомления о посещаемости.",a:"Пожалуйста, проверьте, разрешены ли push-уведомления приложения iBom в настройках телефона. Также убедитесь, что номер телефона, зарегистрированный в школе, указан правильно."}},
+{id:8,cat:"etc",kw:["만족도 조사","설문 잘못","답변 수정"],
+ ko:{q:"만족도 조사 답변을 잘못 입력했어요.",a:"한 번 제출된 만족도 조사는 앱에서 수정할 수 없습니다. 수정이 필요한 경우 학교로 문의해 주세요."},
+ en:{q:"I entered the wrong answer on the satisfaction survey.",a:"A submitted survey cannot be edited in the app. If a correction is needed, please contact your school."},
+ zh:{q:"满意度调查的答案填错了怎么办?",a:"已提交的满意度调查无法在应用内修改。如需修改,请联系学校。"},
+ vi:{q:"Tôi nhập sai câu trả lời khảo sát mức độ hài lòng.",a:"Khảo sát đã gửi không thể chỉnh sửa trong ứng dụng. Nếu cần chỉnh sửa, vui lòng liên hệ nhà trường."},
+ ja:{q:"満足度調査の回答を間違えて入力しました。",a:"一度提出された満足度調査はアプリ内で修正できません。修正が必要な場合は学校にお問い合わせください。"},
+ ru:{q:"Я неправильно ответил в опросе удовлетворённости.",a:"Отправленный опрос нельзя изменить в приложении. Если требуется исправление, обратитесь в школу."}},
+{id:9,cat:"apply",kw:["수강신청 기간","신청 기간 확인"],
+ ko:{q:"수강신청 기간은 어떻게 확인하나요?",a:"안내된 수강신청 시작 시간과 마감 시간에 맞춰 신청 가능한 프로그램이 목록에 표시됩니다. 자세한 사항은 학교로 문의해 주세요."},
+ en:{q:"How can I check the course registration period?",a:"Available programs are listed according to the announced start and end times for registration. Please contact your school for details."},
+ zh:{q:"如何确认课程申请期间?",a:"根据公布的申请开始和截止时间,可申请的项目会显示在列表中。详情请联系学校。"},
+ vi:{q:"Làm sao để kiểm tra thời gian đăng ký khóa học?",a:"Các chương trình có thể đăng ký sẽ hiển thị trong danh sách theo thời gian bắt đầu và kết thúc đã thông báo. Vui lòng liên hệ nhà trường để biết chi tiết."},
+ ja:{q:"受講申請期間はどう確認しますか?",a:"案内された申請開始・締切時間に合わせて申請可能なプログラムがリストに表示されます。詳細は学校にお問い合わせください。"},
+ ru:{q:"Как узнать период записи на курс?",a:"Доступные программы отображаются в списке в соответствии с объявленным временем начала и окончания записи. За подробностями обращайтесь в школу."}},
+{id:10,cat:"apply",kw:["대기자","정원 초과","추첨"],
+ ko:{q:"정원 초과로 대기자가 된 경우 어떻게 안내받나요?",a:"추첨일에 수강 확정자에게만 확정 푸시 알림이 발송됩니다. 탈락자와 대기자에게는 별도 연락이 가지 않으므로 학교에 확인해 주세요."},
+ en:{q:"How will I be notified if I'm on the waitlist due to full capacity?",a:"On the lottery date, a confirmation push notification is sent only to confirmed students. Waitlisted or unselected applicants are not separately contacted, so please check with your school."},
+ zh:{q:"因超员成为候补时如何通知?",a:"抽签当天,仅向确定录取者发送推送通知。落选者和候补者不会单独联系,请向学校确认。"},
+ vi:{q:"Nếu vào danh sách chờ do vượt số lượng thì được thông báo thế nào?",a:"Vào ngày bốc thăm, chỉ những người trúng tuyển mới nhận được thông báo đẩy xác nhận. Người trượt và danh sách chờ sẽ không được liên hệ riêng, vui lòng xác nhận với nhà trường."},
+ ja:{q:"定員超過で補欠になった場合はどう案内されますか?",a:"抽選日には受講確定者にのみ確定プッシュ通知が送られます。落選者・補欠者には個別連絡がないため、学校にご確認ください。"},
+ ru:{q:"Как я узнаю, что попал в лист ожидания из-за превышения лимита?",a:"В день жеребьёвки push-уведомление о подтверждении отправляется только зачисленным. Незачисленным и находящимся в листе ожидания отдельно не сообщают, уточняйте в школе."}},
+{id:11,cat:"apply",kw:["환불","환불 규정"],
+ ko:{q:"환불 규정은 어떻게 확인하나요?",a:"각 학교의 수강신청 안내 및 공지사항을 참고해 주세요."},
+ en:{q:"How can I check the refund policy?",a:"Please refer to your school's course registration guide and notices."},
+ zh:{q:"如何确认退款规定?",a:"请参考各学校的课程申请指南及公告事项。"},
+ vi:{q:"Làm sao để xem quy định hoàn tiền?",a:"Vui lòng tham khảo hướng dẫn đăng ký khóa học và thông báo của từng trường."},
+ ja:{q:"返金規定はどこで確認できますか?",a:"各学校の受講申請案内および公知事項をご確認ください。"},
+ ru:{q:"Как узнать правила возврата средств?",a:"Пожалуйста, ознакомьтесь с руководством по записи на курс и объявлениями вашей школы."}},
+{id:12,cat:"attend",kw:["출결 현황","출석내역","출결"],
+ ko:{q:"자녀의 출결 현황은 어디서 확인하나요?",a:"메인화면에서 강좌/출석 페이지를 선택한 후, 출석내역에서 확인할 수 있습니다."},
+ en:{q:"Where can I check my child's attendance status?",a:"Select 'Courses/Attendance' on the main screen, then check the attendance history section."},
+ zh:{q:"在哪里查看子女的出勤情况?",a:"在主页面选择“课程/出勤”页面,然后在出勤记录中查看。"},
+ vi:{q:"Xem tình trạng điểm danh của con ở đâu?",a:"Chọn trang 'Khóa học/Điểm danh' ở màn hình chính, sau đó kiểm tra trong mục lịch sử điểm danh."},
+ ja:{q:"子供の出欠状況はどこで確認しますか?",a:"メイン画面で講座/出席ページを選択後、出席内訳で確認できます。"},
+ ru:{q:"Где посмотреть статус посещаемости моего ребёнка?",a:"Выберите «Курсы/Посещаемость» на главном экране, затем проверьте раздел истории посещаемости."}},
+{id:13,cat:"etc",kw:["언어 변경","언어설정","다국어"],
+ ko:{q:"앱 사용 언어를 변경하고 싶어요.",a:"마이페이지 > 언어설정에서 원하는 언어를 선택한 후 확인을 눌러 주세요."},
+ en:{q:"I want to change the app language.",a:"Go to My Page > Language Settings, choose your preferred language, and tap Confirm."},
+ zh:{q:"我想更改应用语言。",a:"请在“我的页面 > 语言设置”中选择所需语言后点击确认。"},
+ vi:{q:"Tôi muốn đổi ngôn ngữ ứng dụng.",a:"Vào Trang cá nhân > Cài đặt ngôn ngữ, chọn ngôn ngữ mong muốn rồi nhấn xác nhận."},
+ ja:{q:"アプリの使用言語を変更したいです。",a:"マイページ>言語設定で希望の言語を選択後、確認を押してください。"},
+ ru:{q:"Я хочу изменить язык приложения.",a:"Перейдите в Мой профиль > Настройки языка, выберите нужный язык и нажмите «Подтвердить»."}}
+];
+
+/* ================= reusable chat-widget factory ================= */
+function createChatWidget(ids){
+  const els = {
+    scroll: document.getElementById(ids.scroll),
+    langBar: document.getElementById(ids.langBar),
+    footnote: document.getElementById(ids.footnote),
+    title: document.getElementById(ids.title),
+    input: document.getElementById(ids.input),
+    send: document.getElementById(ids.send)
+  };
+  let lang = "ko";
+
+  function buildLangBar(){
+    els.langBar.innerHTML = "";
+    Object.keys(LANG_LABELS).forEach(code=>{
+      const b = document.createElement("button");
+      b.className = "lang-btn" + (code===lang ? " active" : "");
+      b.textContent = LANG_LABELS[code];
+      b.onclick = ()=>{ lang = code; renderAll(); };
+      els.langBar.appendChild(b);
+    });
+  }
+  function addBotBubble(text){ const d=document.createElement("div"); d.className="msg bot"; d.textContent=text; els.scroll.appendChild(d); }
+  function addUserBubble(text){ const d=document.createElement("div"); d.className="msg user"; d.textContent=text; els.scroll.appendChild(d); }
+  function addCategoryGrid(){
+    const label=document.createElement("div"); label.className="cat-title"; label.textContent=UI[lang].catLabel; els.scroll.appendChild(label);
+    const grid=document.createElement("div"); grid.className="cat-grid";
+    CAT_ORDER.forEach(catId=>{
+      const chip=document.createElement("button"); chip.className="cat-chip"; chip.textContent=CATEGORY_LABELS[catId][lang];
+      chip.onclick=()=>openCategory(catId); grid.appendChild(chip);
+    });
+    els.scroll.appendChild(grid);
+  }
+  function addFaqList(catId){
+    FAQ.filter(f=>f.cat===catId).forEach(f=>{
+      const chip=document.createElement("button"); chip.className="faq-chip"; chip.textContent=f[lang].q;
+      chip.onclick=()=>answerFaq(f); els.scroll.appendChild(chip);
+    });
+    const back=document.createElement("button"); back.className="back-chip"; back.textContent=UI[lang].back;
+    back.onclick=()=>scrollAppend(()=>addCategoryGrid());
+    els.scroll.appendChild(back);
+  }
+  function scrollAppend(fn){ fn(); els.scroll.scrollTop = els.scroll.scrollHeight; }
+  function openCategory(catId){
+    const label = CATEGORY_LABELS[catId][lang];
+    scrollAppend(()=>{ addUserBubble(label); addFaqList(catId); });
+  }
+  function answerFaq(f){ scrollAppend(()=>{ addUserBubble(f[lang].q); addBotBubble(f[lang].a + "\n\n" + UI[lang].closing); }); }
+  function noInfo(){ scrollAppend(()=>{ addBotBubble(UI[lang].noinfo + "\n" + UI[lang].contact + "\n\n" + UI[lang].closing); }); }
+  function keywordMatch(text){
+    const t=text.trim().toLowerCase(); if(!t) return null;
+    let best=null;
+    FAQ.forEach(f=>{ f.kw.forEach(k=>{ if(t.includes(k.toLowerCase())||k.toLowerCase().includes(t)){ if(!best) best=f; } }); });
+    return best;
+  }
+  function handleSend(){
+    const text = els.input.value; if(!text.trim()) return;
+    const match = keywordMatch(text); els.input.value="";
+    if(match){ scrollAppend(()=>{ addUserBubble(text); addBotBubble(match[lang].a + "\n\n" + UI[lang].closing); }); }
+    else{ scrollAppend(()=>addUserBubble(text)); noInfo(); }
+  }
+  function renderAll(){
+    els.title.textContent = UI[lang].title;
+    els.input.placeholder = UI[lang].placeholder;
+    els.footnote.textContent = UI[lang].footnote;
+    buildLangBar();
+    els.scroll.innerHTML = "";
+    addBotBubble(UI[lang].welcome);
+    addCategoryGrid();
+  }
+  els.send.onclick = handleSend;
+  els.input.addEventListener("keydown",(e)=>{ if(e.key==="Enter") handleSend(); });
+  return { renderAll, get initialized(){ return els.scroll.children.length>0; } };
+}
+
+/* instantiate two independent widgets sharing the same FAQ/i18n data */
+const webWidget = createChatWidget({scroll:"webScroll",langBar:"webLangBar",footnote:"webFootnote",title:"webTitle",input:"webInput",send:"webSend"});
+const mobWidget = createChatWidget({scroll:"mobScroll",langBar:"mobLangBar",footnote:"mobFootnote",title:"mobTitle",input:"mobInput",send:"mobSend"});
+
+/* website widget open/close */
+const webFab=document.getElementById("webFab"), webPanel=document.getElementById("webPanel"), webClose=document.getElementById("webClose");
+webFab.onclick=()=>{ webPanel.classList.add("open"); if(!webWidget.initialized) webWidget.renderAll(); };
+webClose.onclick=()=>webPanel.classList.remove("open");
+
+/* mobile widget open/close */
+const mobFab=document.getElementById("mobFab"), mobSheet=document.getElementById("mobSheet"), mobClose=document.getElementById("mobClose");
+mobFab.onclick=()=>{ mobSheet.classList.add("open"); if(!mobWidget.initialized) mobWidget.renderAll(); };
+mobClose.onclick=()=>mobSheet.classList.remove("open");
+
+/* top channel switch */
+const btnWeb=document.getElementById("btnWeb"), btnMobile=document.getElementById("btnMobile");
+const viewWeb=document.getElementById("view-web"), viewMobile=document.getElementById("view-mobile");
+btnWeb.onclick=()=>{ btnWeb.classList.add("active"); btnMobile.classList.remove("active"); viewWeb.classList.add("active"); viewMobile.classList.remove("active"); };
+btnMobile.onclick=()=>{ btnMobile.classList.add("active"); btnWeb.classList.remove("active"); viewMobile.classList.add("active"); viewWeb.classList.remove("active"); };
+</script>
+</body>
+</html>
